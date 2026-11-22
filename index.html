@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -80,7 +79,7 @@ footer{padding:28px 0;color:#777;font-size:11px;letter-spacing:1px;text-transfor
     <h3>Blue Guts Plate</h3>
     <div class="product-price">€24.99</div>
     <div class="product-note">Front plate · Check bike compatibility before ordering</div>
-    <a class="product-buy" href="https://paypal.me/Mkiss356/24.99EUR" target="_blank" rel="noopener noreferrer">Pay with PayPal</a>
+    <button class="product-buy" type="button" onclick="openCheckout('Blue Guts Plate')">Order now</button>
   </div>
 </article>
 <article class="product-card">
@@ -89,7 +88,7 @@ footer{padding:28px 0;color:#777;font-size:11px;letter-spacing:1px;text-transfor
     <h3>Pink Guts Plate</h3>
     <div class="product-price">€24.99</div>
     <div class="product-note">Front plate · Check bike compatibility before ordering</div>
-    <a class="product-buy" href="https://paypal.me/Mkiss356/24.99EUR" target="_blank" rel="noopener noreferrer">Pay with PayPal</a>
+    <button class="product-buy" type="button" onclick="openCheckout('Pink Guts Plate')">Order now</button>
   </div>
 </article>
 </div></div></section>
@@ -106,4 +105,65 @@ menuBtn.addEventListener('click',()=>navLinks.classList.toggle('open'));
 navLinks.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>navLinks.classList.remove('open')));
 document.getElementById('year').textContent=new Date().getFullYear();
 </script>
+
+<style>
+#mk-checkout-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:99999;align-items:center;justify-content:center;padding:18px;overflow:auto}
+#mk-checkout{background:#111;color:#f5f5f5;border:1px solid #444;border-radius:14px;padding:24px;width:min(100%,560px);max-height:92vh;overflow:auto;position:relative;font-family:inherit}
+#mk-checkout h2{margin:0 36px 8px 0;font-size:25px}#mk-checkout p{color:#aaa;font-size:13px;line-height:1.5}
+#mk-checkout label{display:block;font-size:12px;color:#ddd;margin:13px 0 6px}
+#mk-checkout input,#mk-checkout textarea{width:100%;background:#080808;color:#fff;border:1px solid #444;border-radius:6px;padding:12px;font:inherit;font-size:14px}
+#mk-checkout textarea{min-height:76px;resize:vertical}#mk-checkout .mk-close{position:absolute;right:16px;top:12px;background:none;border:0;color:#fff;font-size:27px;cursor:pointer}
+#mk-checkout .mk-submit{width:100%;margin-top:18px;background:#f4f4f4;color:#080808;border:0;border-radius:6px;padding:14px;font-weight:800;letter-spacing:.5px;cursor:pointer}
+#mk-checkout .mk-submit:disabled{opacity:.55;cursor:wait}#mk-checkout .mk-small{font-size:11px;color:#999}
+</style>
+<div id="mk-checkout-overlay" role="dialog" aria-modal="true" aria-labelledby="mk-checkout-title">
+ <div id="mk-checkout">
+  <button class="mk-close" type="button" aria-label="Close checkout" onclick="closeCheckout()">&times;</button>
+  <h2 id="mk-checkout-title">Your order</h2>
+  <p id="mk-checkout-product"></p>
+  <form id="mk-order-form">
+   <input type="hidden" name="Product" id="mk-product-field">
+   <input type="hidden" name="Price" value="EUR 24.99">
+   <input type="hidden" name="Order status" value="Payment pending — customer will be redirected to PayPal">
+   <label for="mk-name">Full name *</label><input id="mk-name" name="Full name" autocomplete="name" required>
+   <label for="mk-email">Email address *</label><input id="mk-email" name="Customer email" type="email" autocomplete="email" required>
+   <label for="mk-address">Street and house number *</label><input id="mk-address" name="Street address" autocomplete="street-address" required>
+   <label for="mk-city">City *</label><input id="mk-city" name="City" autocomplete="address-level2" required>
+   <label for="mk-postcode">Postal code *</label><input id="mk-postcode" name="Postal code" autocomplete="postal-code" required>
+   <label for="mk-country">Country *</label><input id="mk-country" name="Country" autocomplete="country-name" required>
+   <label for="mk-notes">Order notes (optional)</label><textarea id="mk-notes" name="Order notes"></textarea>
+   <p class="mk-small">Your order details will be emailed to MK Mods. Shipping costs and availability may need confirmation. Your order is not confirmed until payment is completed and accepted.</p>
+   <button class="mk-submit" id="mk-submit" type="submit">Send order details &amp; continue to PayPal</button>
+   <p id="mk-form-message" role="status" aria-live="polite"></p>
+  </form>
+ </div>
+</div>
+<script>
+(function(){
+ const overlay=document.getElementById('mk-checkout-overlay');
+ window.openCheckout=function(product){
+  document.getElementById('mk-checkout-product').textContent=product+' — €24.99 (shipping to be confirmed)';
+  document.getElementById('mk-product-field').value=product;
+  document.getElementById('mk-form-message').textContent='';
+  overlay.style.display='flex';document.body.style.overflow='hidden';
+ };
+ window.closeCheckout=function(){overlay.style.display='none';document.body.style.overflow='';};
+ overlay.addEventListener('click',e=>{if(e.target===overlay)window.closeCheckout();});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.style.display==='flex')window.closeCheckout();});
+ document.getElementById('mk-order-form').addEventListener('submit',async function(e){
+  e.preventDefault();
+  const btn=document.getElementById('mk-submit'),msg=document.getElementById('mk-form-message');
+  btn.disabled=true;btn.textContent='Sending order details…';msg.textContent='';
+  try{
+   const response=await fetch('https://formsubmit.co/ajax/kissmatyas999@gmail.com',{method:'POST',body:new FormData(this),headers:{'Accept':'application/json'}});
+   const result=await response.json();
+   if(!response.ok||result.success===false)throw new Error(result.message||'Could not send the order details.');
+   const product=document.getElementById('mk-product-field').value;
+   msg.textContent='Details sent. Opening PayPal…';
+   window.location.href='https://paypal.me/Mkiss356/24.99EUR';
+  }catch(err){msg.textContent='Could not send your order details. Please try again or contact MK Mods. '+err.message;btn.disabled=false;btn.textContent='Send order details & continue to PayPal';}
+ });
+})();
+</script>
+
 </body></html>
